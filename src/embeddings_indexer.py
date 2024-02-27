@@ -12,11 +12,10 @@ def store_chunk_data():
     chunks_dir = os.path.join(base_dir, "chunks")
     indices_dir = os.path.join(base_dir, "indices")
     os.makedirs(indices_dir, exist_ok=True)
-    index_counter = 1
+    all_embeddings = []
 
     for root, dirs, files in os.walk(chunks_dir):
         for file in files:
-            print(f'file_name : {file}')
             chunk_data_path = os.path.join(root, file)
             chunk_data = read_chunk_data(chunk_data_path)
 
@@ -25,13 +24,17 @@ def store_chunk_data():
 
             if chunks:
                 cleaned_chunks = [chunk.replace('\n', ' ') for chunk in chunks]
-                faiss_index = process_chunks(cleaned_chunks)
+                for chunk in cleaned_chunks:
+                    embeddings = get_embeddings(chunk)
+                    all_embeddings.extend(embeddings)
+    
+    if all_embeddings:
+        all_embeddings_array = np.array(all_embeddings)
+        faiss_index = create_faiss_index(all_embeddings_array)
 
-
-                index_file = os.path.join(indices_dir, f"index{index_counter}")
-                faiss.write_index(faiss_index, index_file + ".index")
-                print(f"FAISS index stored for {file} as {index_file}")
-            index_counter += 1
+        index_file = os.path.join(indices_dir, "combined_index")
+        faiss.write_index(faiss_index, index_file + ".index")
+        print(f"Combined FAISS index stored as {index_file}")
 
 
 def split_text(text, max_length):
@@ -42,14 +45,6 @@ def read_chunk_data(filepath):
     with open(filepath, 'r') as file:
         chunk_data = file.read()
     return chunk_data
-
-
-def process_chunks(chunk):
-    chunk_embeddings = np.array([get_embeddings(chunk)])
-    # Assuming create_faiss_index can handle incremental additions
-    # May need to adjust this logic to combine embeddings before indexing
-    faiss_index = create_faiss_index(chunk_embeddings)
-    return faiss_index
 
 
 def get_embeddings(text):
@@ -78,15 +73,3 @@ def create_faiss_index(embeddings):
     index = faiss.IndexFlatL2(dimension)  # Create a FAISS index of the appropriate dimension
     index.add(embeddings)  # Add embeddings to the index
     return index
-
-
-"""not using openai for limitations as of now"""
-# def get_embeddings(text):
-#     response = client.embeddings.create(
-#         input=[text],
-#         model="text-embedding-ada-002"
-#     )
-
-#     embedding_vector = response.data[0].embedding
-#     print (len(embedding_vector))
-#     return embedding_vector
