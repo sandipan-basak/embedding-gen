@@ -32,9 +32,12 @@ def preprocess_text_chunk(text):
 
 
 def store_chunk_file(chunk, file, pdf_dir, chunk_number):
-    chunk_dir = os.path.join(pdf_dir, 'chunks', file[:-4])
+    chunk_dir = os.path.join(pdf_dir, 'chunks')
     os.makedirs(chunk_dir, exist_ok=True)
-    output_file_path = os.path.join(chunk_dir, f'chunk_data_{chunk_number}.txt')
+    
+    base_file_name = os.path.splitext(file)[0]
+    output_file_name = f"{base_file_name}_page_{chunk_number}.txt"
+    output_file_path = os.path.join(chunk_dir, output_file_name)
 
     with open(output_file_path, 'w') as output_file:
         output_file.write(chunk)

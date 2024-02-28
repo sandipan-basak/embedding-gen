@@ -1,4 +1,5 @@
 import os
+import re
 import faiss
 import numpy as np
 # from openai import OpenAI
@@ -31,12 +32,20 @@ def store_chunk_data():
                     all_embeddings.extend(embeddings)
 
                     # Generate metadata for each chunk
+                    file_base_name = os.path.splitext(file)[0]
+                    topic_parts = re.sub(r'_page_', ' ', file_base_name).split()
+                    if len(topic_parts) > 1:
+                        topic = f"[{' '.join(topic_parts[:-1])} {topic_parts[-1]}]"
+                    else:
+                        topic = f"[{file_base_name}]"
+
                     for i in range(len(embeddings)):
                         metadata.append({
                             "faiss_index": len(all_embeddings) - len(embeddings) + i,
                             "chunk_path": chunk_data_path,
                             "source_file": file,
                             "document_year": document_year,
+                            "topic": topic,
                         })
     
     if all_embeddings:
