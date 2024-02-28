@@ -19,6 +19,7 @@ def store_chunk_data():
         for file in files:
             chunk_data_path = os.path.join(root, file)
             chunk_data = read_chunk_data(chunk_data_path)
+            document_year = os.path.basename(os.path.dirname(chunk_data_path))
 
             max_length = 1024
             chunks = split_text(chunk_data, max_length)
@@ -35,6 +36,7 @@ def store_chunk_data():
                             "faiss_index": len(all_embeddings) - len(embeddings) + i,
                             "chunk_path": chunk_data_path,
                             "source_file": file,
+                            "document_year": document_year,
                         })
     
     if all_embeddings:
