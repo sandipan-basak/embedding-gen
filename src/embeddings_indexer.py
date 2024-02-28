@@ -3,9 +3,9 @@ import faiss
 import numpy as np
 # from openai import OpenAI
 from fastembed import TextEmbedding
+import json
 
 # client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 
 def store_chunk_data():
     base_dir="/usr/src/app/data"
@@ -13,6 +13,7 @@ def store_chunk_data():
     indices_dir = os.path.join(base_dir, "indices")
     os.makedirs(indices_dir, exist_ok=True)
     all_embeddings = []
+    metadata = []
 
     for root, dirs, files in os.walk(chunks_dir):
         for file in files:
@@ -27,14 +28,30 @@ def store_chunk_data():
                 for chunk in cleaned_chunks:
                     embeddings = get_embeddings(chunk)
                     all_embeddings.extend(embeddings)
+
+                    # Generate metadata for each chunk
+                    for i in range(len(embeddings)):
+                        metadata.append({
+                            "faiss_index": len(all_embeddings) - len(embeddings) + i,
+                            "chunk_path": chunk_data_path,
+                            "source_file": file,
+                        })
     
     if all_embeddings:
+        # Convert embeddings list to a numpy array for FAISS
         all_embeddings_array = np.array(all_embeddings)
         faiss_index = create_faiss_index(all_embeddings_array)
 
-        index_file = os.path.join(indices_dir, "combined_index")
-        faiss.write_index(faiss_index, index_file + ".index")
+        # Store the FAISS index
+        index_file = os.path.join(indices_dir, "combined_index.index")
+        faiss.write_index(faiss_index, index_file)
         print(f"Combined FAISS index stored as {index_file}")
+
+        # Store metadata mapping
+        metadata_file = os.path.join(indices_dir, "metadata.json")
+        with open(metadata_file, 'w') as f:
+            json.dump(metadata, f)
+        print(f"Metadata mapping stored as {metadata_file}")
 
 
 def split_text(text, max_length):

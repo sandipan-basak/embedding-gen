@@ -1,5 +1,5 @@
 PyMuPDF==1.23.25
 faiss-cpu==1.7.4
 openai==1.12.0
-python-dotenv==1.0.
+python-dotenv==1.0.1
 fastembed==0.2.2
