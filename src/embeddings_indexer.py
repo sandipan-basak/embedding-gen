@@ -76,7 +76,7 @@ def read_chunk_data(filepath):
 
 
 def get_embeddings(text):
-    embedding_model = TextEmbedding(model_name="BAAI/bge-base-en")
+    embedding_model = TextEmbedding(model_name="BAAI/bge-large-en-v1.5-quantized")
     embeddings = list(embedding_model.embed(text))
     return embeddings
 
